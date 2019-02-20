@@ -1362,3 +1362,73 @@ This property must be a list of dictionaries, containing ``change_id`` and ``rev
 .. _txrequests: https://pypi.python.org/pypi/txrequests
 .. _verify-status: https://gerrit.googlesource.com/plugins/verify-status
 .. _Gerrit documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#revision-endpoints
+
+.. bb:reporter:: SlackStatusPush
+
+SlackStatusPush
+~~~~~~~~~~~~~~~~~
+
+.. @cindex SlackStatusPush
+.. py:class:: buildbot.reporters.slack.SlackStatusPush
+
+::
+
+    from buildbot.plugins import reporters
+
+    slack = reporters.SlackStatusPush('https://hooks.slack.com/services/zzzzzzzzz/yyyyyyyyy/xxxxxxxxxxxxxxxxxxxxxxxx')
+    c['services'].append(slack)
+
+:class:`SlackStatusPush` publishes a custom message using `Incoming Webhook slack app <https://slack.com/apps/A0F7XDUAZ-incoming-webhooks>`_.
+The message is published to a user and/or public channel in Slack,
+
+It requires `txrequests`_ package to allow interaction with Slack API.
+
+It uses API token auth, and the token owner is required to have at least message/notification access to each destination.
+
+
+.. py:class:: SlackStatusPush(endpoint, username=None, channels=None, icon_url=None, builders=None)
+
+    :param string endpoint: URL given by the incomming webhook slack apps
+    :param string username: (optional) Username of your bot
+    :param list channels: (optional) List of channel or person the message should be send. (#general or @myuser for example)
+    :param string icon_url: (optional) URL of the icon your bot should use
+    :param list builders: only send update for specified builders
+
+
+.. note::
+
+   No message will be sent if the message is empty or there is no destination found.
+
+
+Json object spec
+++++++++++++++++
+
+The default json object contains a minimalist message.
+
+.. code-block:: json
+
+    {
+        "attachments": [
+            {
+                "color": <color representing the result>,
+                "author_name": <builder name>,
+                "title": "Build <build number> finished",
+                "title_link": "http://yourbot/path/to/build",
+                "ts": <build complete_at timestamp>,
+            }
+        ]
+    }
+
+
+
+If you require different parameters, you can subclass the Slack reporter and overide the py:func:`getMessage`.
+
+Method signatures:
+
+.. py:method:: getMessage(self, build)
+
+     :param build: A :class:`Build` object
+     :returns: Deferred
+
+     The deferred should return a string to send to Slack.
+
